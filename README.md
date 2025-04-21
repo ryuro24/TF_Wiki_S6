@@ -13,10 +13,10 @@ pip install -r requirements.txt.
 
 cambiar dirección de Base de Datos oracle sql en Settings.py
 
-pip manage.py makemigrations
-pip manage.py migrate.
+python manage.py makemigrations
+python manage.py migrate.
 
-pip manage.py createsuperuser
+python manage.py createsuperuser
 
 
 entrar a http://127.0.0.1:8000/admin/socialaccount/socialapp/ y añadir:
