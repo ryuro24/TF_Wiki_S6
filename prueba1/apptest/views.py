@@ -11,6 +11,7 @@ from django.http import Http404
 from django.urls import reverse_lazy
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.views import PasswordResetView
+from django.contrib.auth.decorators import login_required
 # Create your views here.
 
 def custom_google_login(request):
@@ -20,6 +21,7 @@ def custom_google_login(request):
 def inicio(request):
     return render(request, 'menuprincipal_wiki.html')
 
+@login_required
 def forowiki(request):
     if not request.user.is_authenticated:
         return redirect('inicio_sesion_wiki')  # Redirect to 'inicio_sesion_wiki' if not logged in
