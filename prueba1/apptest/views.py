@@ -87,6 +87,20 @@ def micuentatf(request):
     username_form = EditarUsernameForm(instance=usuario)
     password_form = CambiarContrasenaForm()
 
+    if request.method == "POST":
+        if 'delete_account' in request.POST:
+            user = request.user
+            # Eliminar token si existe
+            try:
+                token = Token.objects.get(user=user)
+                token.delete()
+            except Token.DoesNotExist:
+                pass  # Si no tiene token, no pasa nada
+            # Eliminar usuario
+            user.delete()
+            # Redirigir sin mensaje
+            return redirect('inicio')  # Cambia 'home' por la vista a donde rediriges luego de eliminar la cuenta
+    
     if request.method == 'POST':
         if 'edit_username' in request.POST:
             username_form = EditarUsernameForm(request.POST, instance=usuario)
