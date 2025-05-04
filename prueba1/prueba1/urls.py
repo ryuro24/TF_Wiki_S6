@@ -43,9 +43,14 @@ urlpatterns = [
 
 
     path('usuario/', UsuarioDetailView.as_view(), name='usuario-detail'),
+    
     path('obtain-token/', ObtainTokenView.as_view(), name='obtain-token'),
+
+    path('micuentatf/', views.micuentatf, name='micuentatf'),  # Ruta para el perfil
+    path('verificar_juego/', views.verificar_juego, name='verificar_juego'),  # Ruta para verificar el juego
 
     path('accounts/', include('allauth.urls')),
     path('accounts/google/login/', custom_google_login, name='google_login'),
+
     path('admin/', admin.site.urls),
 ]

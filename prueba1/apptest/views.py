@@ -19,6 +19,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import AuthenticationFailed
+import requests
+from django.conf import settings
 # Create your views here.
 
 def custom_google_login(request):
@@ -207,4 +209,61 @@ def recuperar_contra(request):
                 context['error'] = 'El email no está registrado.'
 
     return render(request, 'recuperarcontra.html', context)
-    
+
+def verificar_juego(request):
+    if request.method == "GET":
+        nombre_usuario = request.GET.get('nombre_usuario')  # Obtener el nombre de usuario desde la URL
+        if nombre_usuario:
+            try:
+                # Hacer la solicitud para obtener el Steam ID desde el nombre de usuario
+                vanity_url = f"https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key={settings.STEAM_API_KEY}&vanityurl={nombre_usuario}"
+                response = requests.get(vanity_url)
+                data = response.json()
+
+                print(f"Nombre de usuario recibido: {nombre_usuario}")
+                print(f"URL consultada para Steam ID: {vanity_url}")
+                print(f"Respuesta API de VanityURL: {data}")  # Para ver la respuesta completa
+
+                if data['response']['success'] == 1:
+                    steam_id = data['response']['steamid']
+                    print(f"Steam ID encontrado: {steam_id}")
+
+                    # Verificamos si tiene *The Forest* en su biblioteca
+                    juegos_url = f"https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key={settings.STEAM_API_KEY}&steamid={steam_id}&include_appinfo=true&format=json"
+                    juegos_response = requests.get(juegos_url)
+                    juegos_data = juegos_response.json()
+
+                    print(f"URL consultada para juegos: {juegos_url}")
+                    print(f"Respuesta API de juegos: {juegos_data}")  # Para ver los juegos que tiene el usuario
+
+                    tiene_the_forest = False
+                    for juego in juegos_data['response'].get('games', []):
+                        print(f"Juego encontrado: {juego.get('name', 'Sin nombre')} - AppID: {juego['appid']}")
+                        if juego['appid'] == 242760:  # El AppID de *The Forest* es 242760
+                            tiene_the_forest = True
+                            print("¡The Forest está en la biblioteca del usuario!")
+                            break
+
+                    return render(request, 'micuentatf.html', {
+                        'tiene_the_forest': tiene_the_forest,
+                        'nombre_usuario': nombre_usuario,
+                        'usuario': request.user
+                    })
+
+                else:
+                    print(f"Error: Steam no pudo resolver el usuario '{nombre_usuario}'.")
+                    print(f"Mensaje de Steam: {data['response'].get('message', 'Sin mensaje')}")
+                    messages.error(request, 'Usuario no encontrado en Steam')
+                    return render(request, 'micuentatf.html', {'usuario': request.user})
+
+            except requests.exceptions.RequestException as e:
+                print(f"Excepción al conectarse a Steam: {e}")
+                messages.error(request, 'Hubo un problema al conectar con Steam, intente más tarde.')
+                return render(request, 'micuentatf.html', {'usuario': request.user})
+
+        else:
+            print("No se ingresó ningún nombre de usuario.")
+            messages.error(request, 'Debe ingresar un nombre de usuario de Steam')
+            return render(request, 'micuentatf.html', {'usuario': request.user})
+
+    return render(request, 'micuentatf.html', {'usuario': request.user})    

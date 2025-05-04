@@ -13,72 +13,94 @@
 
 <body id="fondo1" style="background-color: #1E2126;">
 
-<section class="seccion-perfil-usuario">
-  <div class="perfil-usuario-header">
-    <div class="perfil-usuario-portada">
-      <div class="perfil-usuario-avatar">
-        <img src="{% static 'image/img_wiki/user.png' %}" alt="img-avatar">
-        <button type="button" class="boton-avatar">
-          <i class="far fa-image"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="perfil-usuario-body">
-    <div class="perfil-usuario-bio">
-      <h3 class="titulo">{{ usuario.username|default:"(sin nombre de usuario)" }}</h3>
-    </div>
-
-    <div class="perfil-usuario-footer">
-      <ul class="lista-datos">
-        <li>
-          <i class="bi bi-person-circle"></i> 
-          <strong>Email:</strong> {{ usuario.email }}
-        </li>
-        <li>
-          <i class="bi bi-person-badge-fill"></i>
-          <strong>Nombre de usuario:</strong> {{ usuario.username|default:"(no definido)" }}
-        </li>
-      </ul>
-
-      <div class="text-center mt-4">
-        <button id="editar-username-btn" class="btn btn-primary me-2" onclick="toggleForm('username')">Editar nombre de usuario</button>
-        <button id="editar-password-btn" class="btn btn-warning" onclick="toggleForm('password')">Cambiar contraseña</button>
-      </div>
-
-      <!-- Formulario para editar nombre de usuario -->
-      <div id="form-username" style="display: none;" class="mt-4">
-        <form method="POST">
-          {% csrf_token %}
-          {{ username_form.username.label_tag }}
-          {{ username_form.username }}
-          <input type="hidden" name="edit_username" value="1">
-          <button type="submit" class="btn btn-success mt-2">Guardar nombre de usuario</button>
-        </form>
-      </div>
-
-      <!-- Formulario para cambiar contraseña -->
-      <div id="form-password" style="display: none;" class="mt-4">
-        <form method="POST">
-          {% csrf_token %}
-          {{ password_form.password.label_tag }}
-          {{ password_form.password }}
-          <input type="hidden" name="change_password" value="1">
-          <button type="submit" class="btn btn-success mt-2">Guardar nueva contraseña</button>
-        </form>
-      </div>
-
-      {% if messages %}
-        <div class="alert alert-info mt-4">
-          {% for message in messages %}
-            {{ message }}
-          {% endfor %}
+  <section class="seccion-perfil-usuario">
+    <div class="perfil-usuario-header">
+      <div class="perfil-usuario-portada">
+        <div class="perfil-usuario-avatar">
+          <img src="{% static 'image/img_wiki/user.png' %}" alt="img-avatar">
+          <button type="button" class="boton-avatar">
+            <i class="far fa-image"></i>
+          </button>
         </div>
-      {% endif %}
+      </div>
     </div>
-  </div>
-</section>
+  
+    <div class="perfil-usuario-body">
+      <div class="perfil-usuario-bio">
+        <h3 class="titulo">{{ usuario.username|default:"(sin nombre de usuario)" }}</h3>
+      </div>
+  
+      <div class="perfil-usuario-footer">
+        <ul class="lista-datos">
+          <li>
+            <i class="bi bi-person-circle"></i>
+            <strong>Email:</strong> {{ usuario.email }}
+          </li>
+          <li>
+            <i class="bi bi-person-badge-fill"></i>
+            <strong>Nombre de usuario:</strong> {{ usuario.username|default:"(no definido)" }}
+          </li>
+        </ul>
+  
+        <div class="text-center mt-4">
+          <button id="editar-username-btn" class="btn btn-primary me-2" onclick="toggleForm('username')">Editar nombre de usuario</button>
+          <button id="editar-password-btn" class="btn btn-warning" onclick="toggleForm('password')">Cambiar contraseña</button>
+        </div>
+  
+        <!-- Formulario para editar nombre de usuario -->
+        <div id="form-username" style="display: none;" class="mt-4">
+          <form method="POST">
+            {% csrf_token %}
+            {{ username_form.username.label_tag }}
+            {{ username_form.username }}
+            <input type="hidden" name="edit_username" value="1">
+            <button type="submit" class="btn btn-success mt-2">Guardar nombre de usuario</button>
+          </form>
+        </div>
+  
+        <!-- Formulario para cambiar contraseña -->
+        <div id="form-password" style="display: none;" class="mt-4">
+          <form method="POST">
+            {% csrf_token %}
+            {{ password_form.password.label_tag }}
+            {{ password_form.password }}
+            <input type="hidden" name="change_password" value="1">
+            <button type="submit" class="btn btn-success mt-2">Guardar nueva contraseña</button>
+          </form>
+        </div>
+  
+        <!-- Formulario para ingresar el nombre de usuario de Steam -->
+        <div id="form-steam" class="mt-4">
+          <form method="get" action="{% url 'verificar_juego' %}">
+            <label for="nombre_usuario_steam">Nombre de usuario de Steam:</label>
+            <input type="text" id="nombre_usuario_steam" name="nombre_usuario" required>
+            <button type="submit" class="btn btn-primary mt-2">Verificar si tiene *The Forest*</button>
+          </form>
+                <!-- Mostrar el resultado de la verificación de Steam -->
+                {% if nombre_usuario %}
+                <div class="resultado-verificacion">
+                  <h4>Resultado de la verificación para {{ nombre_usuario }}:</h4>
+                  {% if tiene_the_forest %}
+                    <p><strong>¡Sí!</strong> El usuario tiene *The Forest* en su biblioteca de Steam.</p>
+                  {% else %}
+                    <p><strong>No</strong>, el usuario no tiene *The Forest* en su biblioteca de Steam.</p>
+                  {% endif %}
+                </div>
+                {% endif %}
+        </div>
+  
+        {% if messages %}
+          <div class="alert alert-info mt-4">
+            {% for message in messages %}
+              {{ message }}
+            {% endfor %}
+          </div>
+        {% endif %}
+  
+
+      </div>
+    </div>
+  </section>
 
 <script>
   function toggleForm(formType) {
