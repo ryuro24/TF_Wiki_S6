@@ -1,3 +1,4 @@
+from django.contrib.auth import authenticate
 from rest_framework import serializers
 from .models import Usuario, Rol
 
@@ -12,3 +13,5 @@ class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = ['id', 'email', 'username', 'rol', 'is_active', 'date_joined']
+
+

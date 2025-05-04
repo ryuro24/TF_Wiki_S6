@@ -12,6 +12,13 @@ from django.urls import reverse_lazy
 from django.contrib.auth.forms import PasswordResetForm
 from django.contrib.auth.views import PasswordResetView
 from django.contrib.auth.decorators import login_required
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.exceptions import AuthenticationFailed
 # Create your views here.
 
 def custom_google_login(request):
@@ -72,6 +79,7 @@ def inicio_sesion_wiki(request):
         'form': form
     })
 
+@login_required
 def micuentatf(request):
     usuario = request.user
     username_form = EditarUsernameForm(instance=usuario)
@@ -139,25 +147,47 @@ def recuperarcontra(request):
     return render(request, 'recuperarcontra.html')
 
 
-class UsuarioDetailView(generics.RetrieveAPIView):
-    queryset = Usuario.objects.all()
-    serializer_class = UsuarioSerializer
+class UsuarioDetailView(APIView):
+    authentication_classes = []  # Ya no requerimos autenticación por sesión/token automática
 
-    def get_object(self):
-        # Retrieve the user by email instead of id (pk)
-        email = self.kwargs.get('email')
+    def post(self, request):
+        token_key = request.data.get('token')  # Ahora tomamos el token del cuerpo
+
+        if not token_key:
+            return Response({"detail": "Token no proporcionado."}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
-            usuario = Usuario.objects.get(email=email)
-            return usuario
-        except Usuario.DoesNotExist:
-            raise Http404("Usuario no encontrado")
+            token = Token.objects.get(key=token_key)
+        except Token.DoesNotExist:
+            return Response({"detail": "Token inválido."}, status=status.HTTP_400_BAD_REQUEST)
 
-    def get(self, request, *args, **kwargs):
-        usuario = self.get_object()  # Now it gets the user by email
-        serializer = self.get_serializer(usuario)
+        usuario = token.user
+
+        # Devolver los datos del usuario asociado al token
+        serializer = UsuarioSerializer(usuario)
         return Response(serializer.data)
-    
 
+class ObtainTokenView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        if not email or not password:
+            return Response({'detail': 'Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Authenticate the user using email and password
+        user = authenticate(request, email=email, password=password)
+
+        if user is None:
+            raise AuthenticationFailed('Invalid email or password.')
+
+        # Retrieve or create the token for the user
+        token, created = Token.objects.get_or_create(user=user)
+
+        return Response({
+            'token': token.key  # Return the existing or newly created token
+        })
+    
 def recuperar_contra(request):
     context = {}
     if request.method == 'POST':

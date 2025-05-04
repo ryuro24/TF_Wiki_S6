@@ -17,8 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from apptest import views
-from apptest.views import custom_google_login,UsuarioDetailView
+from apptest.views import custom_google_login,UsuarioDetailView,ObtainTokenView
 from django.contrib.auth import views as auth_views
+from rest_framework.authtoken.views import obtain_auth_token
 
 urlpatterns = [
     path(route='',view=views.inicio, name='inicio'),
@@ -41,7 +42,8 @@ urlpatterns = [
 
 
 
-    path('usuario/<str:email>/', views.UsuarioDetailView.as_view(), name='usuario-detail'),
+    path('usuario/', UsuarioDetailView.as_view(), name='usuario-detail'),
+    path('obtain-token/', ObtainTokenView.as_view(), name='obtain-token'),
 
     path('accounts/', include('allauth.urls')),
     path('accounts/google/login/', custom_google_login, name='google_login'),
